@@ -29,104 +29,6 @@ const districts = [
   "san-juan-de-miraflores",
 ];
 
-const requestQueue = await RequestQueue.open();
-
-const csvWriter = createArrayCsvWriter({
-  // path: `storage/datasets/crawl-${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear()}.csv`,
-  path: "files/output.csv",
-  header: [
-    "title",
-    "url",
-    "saleType",
-    "propertyType",
-    "district",
-    "province",
-    "department",
-    "price",
-    "area",
-  ],
-});
-
-const crawler = new PlaywrightCrawler({
-  async requestHandler({ page, request }) {
-    console.log(request.url);
-    const list = page.locator(
-      "#root > div.sc-ps0squ-0.hiZnfm > div > div > div.sc-185xmk8-1.iNSUmi > div.sc-185xmk8-2.bqddpd > div.postings-container > div"
-    );
-
-    let records: any[][] = [];
-
-    for (let i = 0; i < (await list.count()); i++) {
-      const title = await list
-        .nth(i)
-        .locator(
-          "div > div > div.sc-i1odl-2.gIHCpf > div.sc-i1odl-3.VSxgr > div:nth-child(1) > div.sc-i1odl-5.cypYcv > div.sc-ge2uzh-1.dhzcWt > div.sc-ge2uzh-0.bzGYzE"
-        )
-        .textContent();
-
-      const price = await list
-        .nth(i)
-        .locator(
-          "div > div > div.sc-i1odl-2.gIHCpf > div.sc-i1odl-3.VSxgr > div:nth-child(1) > div.sc-i1odl-5.cypYcv > div.sc-i1odl-8.hmHSY > div.sc-12dh9kl-0.cysiyu > div.sc-12dh9kl-3.gGCVnu > div"
-        )
-        .nth(0)
-        .textContent();
-      const priceNum = Number(price?.trim().split(" ")[1].split(",").join(""));
-
-      const area = await list
-        .nth(i)
-        .locator(
-          "div > div > div.sc-i1odl-2.gIHCpf > div.sc-i1odl-3.VSxgr > div:nth-child(1) > div.sc-i1odl-5.bkbRHX > div > span:nth-child(1) > span"
-        )
-        .textContent();
-      const areaNum = Number(area?.trim().split(" ")[0]);
-
-      const relativeUrl = await list
-        .nth(i)
-        .locator("div")
-        .first()
-        // fix type 
-        .evaluate((node: any) => {
-          return node.attributes.getNamedItem("data-to-posting")?.nodeValue;
-        });
-      const url = source + relativeUrl;
-
-      const requestInfo = request.userData;
-      records.push([
-        title ?? "",
-        url,
-        requestInfo.saleType,
-        requestInfo.propertyType,
-        requestInfo.district,
-        "lima",
-        "lima",
-        priceNum,
-        areaNum,
-      ]);
-    }
-
-    await csvWriter.writeRecords(records);
-
-    // Add next pages
-    const pageList = page.locator(
-      "#root > div.sc-ps0squ-0.hiZnfm > div > div > div.sc-n5babu-0.dYNwNc > a"
-    );
-
-    for (let i = 0; i < (await pageList.count()); i++) {
-      let pageNumber = await pageList.nth(i).textContent();
-      if (pageNumber) {
-        const newUrl = request.url.split("?")[0] + `?page=${pageNumber}`;
-        requestQueue.addRequest({
-          url: newUrl,
-        });
-      }
-    }
-  },
-  requestQueue: requestQueue,
-  maxConcurrency: 2,
-  // headless: false,
-});
-
 const queryUrl = (
   saleType: string,
   propertyType: string,
@@ -137,22 +39,120 @@ const queryUrl = (
 };
 
 export const sendScrappingCsv = async (query: Query, email: string) => {
-  console.log("Adding requests")
-  for (let i = 1; i <= 30; i++) {
+  const requestQueue = await RequestQueue.open();
+
+  const csvWriter = createArrayCsvWriter({
+    // path: `storage/datasets/crawl-${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear()}.csv`,
+    path: "files/output.csv",
+    header: [
+      "title",
+      "url",
+      "saleType",
+      "propertyType",
+      "district",
+      "province",
+      "department",
+      "price",
+      "area",
+    ],
+  });
+
+  let isFirstCrawl = true;
+  const crawler = new PlaywrightCrawler({
+    async requestHandler({ page, request }) {
+      console.log(request.url);
+      const list = page.locator(
+        "#root > div.sc-ps0squ-0.hiZnfm > div > div > div.sc-185xmk8-1.iNSUmi > div.sc-185xmk8-2.bqddpd > div.postings-container > div"
+      );
+
+      let records: any[][] = [];
+
+      for (let i = 0; i < (await list.count()); i++) {
+        const title = await list
+          .nth(i)
+          .locator(
+            "div > div > div.sc-i1odl-2.gIHCpf > div.sc-i1odl-3.VSxgr > div:nth-child(1) > div.sc-i1odl-5.cypYcv > div.sc-ge2uzh-1.dhzcWt > div.sc-ge2uzh-0.bzGYzE"
+          )
+          .textContent();
+
+        const price = await list
+          .nth(i)
+          .locator(
+            "div > div > div.sc-i1odl-2.gIHCpf > div.sc-i1odl-3.VSxgr > div:nth-child(1) > div.sc-i1odl-5.cypYcv > div.sc-i1odl-8.hmHSY > div.sc-12dh9kl-0.cysiyu > div.sc-12dh9kl-3.gGCVnu > div"
+          )
+          .nth(0)
+          .textContent();
+        const priceNum = Number(
+          price?.trim().split(" ")[1].split(",").join("")
+        );
+
+        const area = await list
+          .nth(i)
+          .locator(
+            "div > div > div.sc-i1odl-2.gIHCpf > div.sc-i1odl-3.VSxgr > div:nth-child(1) > div.sc-i1odl-5.bkbRHX > div > span:nth-child(1) > span"
+          )
+          .textContent();
+        const areaNum = Number(area?.trim().split(" ")[0]);
+
+        const relativeUrl = await list
+          .nth(i)
+          .locator("div")
+          .first()
+          // fix type
+          .evaluate((node: any) => {
+            return node.attributes.getNamedItem("data-to-posting")?.nodeValue;
+          });
+        const url = source + relativeUrl;
+
+        records.push([
+          title ?? "",
+          url,
+          query.saleType,
+          query.propertyType,
+          query.district,
+          "lima",
+          "lima",
+          priceNum,
+          areaNum,
+        ]);
+      }
+
+      await csvWriter.writeRecords(records);
+
+      // Add all pages at once only the first time
+      if (isFirstCrawl) {
+        const numberOfItemsTitle = await page
+          .locator(
+            "#root > div.sc-ps0squ-0.hiZnfm > div > div > div.sc-185xmk8-1.iNSUmi > div.sc-185xmk8-2.bqddpd > div.sc-5z85om-0.hjpEnc > div.sc-5z85om-2.czixvV > h1"
+          )
+          .textContent();
+        const numberOfItems = Number(numberOfItemsTitle?.trim().split(' ')[0]);
+        const numberOfPages = Math.ceil(numberOfItems / 20);
+        for (let i = 2; i <= numberOfPages; i++) {
+          const newUrl = request.url.split("?")[0] + `?page=${i}`;
+          requestQueue.addRequest({
+            url: newUrl,
+          });
+        }
+        isFirstCrawl = false;
+      }
+    },
+    requestQueue: requestQueue,
+    // maxConcurrency: 2,
+    // headless: false,
+  });
+
+  console.log("Adding requests");
+  for (let i = 1; i <= 1; i++) {
     requestQueue.addRequest({
       url: queryUrl(query.saleType, query.propertyType, query.district, i),
-      userData: {
-        saleType: query.saleType,
-        propertyType: query.propertyType,
-        district: query.district,
-      },
     });
   }
-  console.log("Scrapping Urbania.pe")
+  console.log("Scrapping Urbania.pe");
   await crawler.run();
 
   // TODO no funciona usuario y contraseña. arreglar o probar smtp
-  const transporter = nodemailer.createTransport({
+  /* const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: "patokloss@gmail.com",
@@ -179,5 +179,16 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
     } else {
       console.log("Email sent: " + info.response);
     }
-  })
+  }) */
 };
+
+const query: Query = {
+  saleType: "alquiler",
+  propertyType: "departamentos",
+  district: "barranco",
+};
+
+const start = performance.now();
+await sendScrappingCsv(query, "");
+const end = performance.now();
+console.log(`Time: ${end - start}`);

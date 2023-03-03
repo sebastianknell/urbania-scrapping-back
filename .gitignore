@@ -2,3 +2,5 @@ node_modules
 .vscode
 dump.rdb
 storage
+files
+.DS_Store
