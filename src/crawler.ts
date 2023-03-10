@@ -1,33 +1,10 @@
 import { PlaywrightCrawler, playwrightUtils, RequestQueue } from "crawlee";
 import { createArrayCsvWriter } from "csv-writer";
-import nodemailer, { SendMailOptions } from "nodemailer";
+import { sendEmailCsv } from "./email.js";
 import { Query } from "./model/query.js";
+import environment from "./environment.js";
 
 const source = "https://urbania.pe";
-
-const saleTypes = ["alquiler", "venta"];
-
-const propertyTypes = ["departamentos", "casas"];
-
-const districts = [
-  "san-borja",
-  "san-isidro",
-  "santiago-de-surco",
-  "miraflores",
-  "barranco",
-  "la-molina",
-  "la-victoria",
-  "magdalena-del-mar",
-  "san-miguel",
-  "santa-anita",
-  "ate-vitarte",
-  "lince",
-  "jesus-maria",
-  "surquillo",
-  "chorrillos",
-  "villa-el-salvador",
-  "san-juan-de-miraflores",
-];
 
 const queryUrl = (
   saleType: string,
@@ -120,13 +97,14 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
       await csvWriter.writeRecords(records);
 
       // Add all pages at once only the first time
+      // TODO esta fallando
       if (isFirstCrawl) {
         const numberOfItemsTitle = await page
           .locator(
             "#root > div.sc-ps0squ-0.hiZnfm > div > div > div.sc-185xmk8-1.iNSUmi > div.sc-185xmk8-2.bqddpd > div.sc-5z85om-0.hjpEnc > div.sc-5z85om-2.czixvV > h1"
           )
           .textContent();
-        const numberOfItems = Number(numberOfItemsTitle?.trim().split(' ')[0]);
+        const numberOfItems = Number(numberOfItemsTitle?.trim().split(" ")[0]);
         const numberOfPages = Math.ceil(numberOfItems / 20);
         for (let i = 2; i <= numberOfPages; i++) {
           const newUrl = request.url.split("?")[0] + `?page=${i}`;
@@ -138,8 +116,6 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
       }
     },
     requestQueue: requestQueue,
-    // maxConcurrency: 2,
-    // headless: false,
   });
 
   console.log("Adding requests");
@@ -151,35 +127,13 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
   console.log("Scrapping Urbania.pe");
   await crawler.run();
 
-  // TODO no funciona usuario y contraseña. arreglar o probar smtp
-  /* const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "patokloss@gmail.com",
-      pass: "dsg5iu72KLmtdSF3",
-    },
-  });
+  // sendEmailCsv(
+  //   email,
+  //   `Estos son los resultados de ${query.saleType} de ${query.propertyType} en ${query.district}`,
+  //   "files/output.csv"
+  // );
 
-  const mailOptions: SendMailOptions = {
-    from: "patokloss@gmail.com",
-    to: email,
-    subject: `Scrapping Urbania ${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear()}`,
-    text: `Estos son los resultados de ${query.saleType} de ${query.propertyType} en ${query.district}`,
-    attachments: [
-      {
-        filename: `scrapping-${new Date().toISOString()}.csv`,
-        path: "files/output.csv",
-      },
-    ],
-  };
-  console.log("Sending email");
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error)
-    } else {
-      console.log("Email sent: " + info.response);
-    }
-  }) */
+  return "output.csv";
 };
 
 const query: Query = {
@@ -188,7 +142,7 @@ const query: Query = {
   district: "barranco",
 };
 
-const start = performance.now();
-await sendScrappingCsv(query, "");
-const end = performance.now();
-console.log(`Time: ${end - start}`);
+// const start = performance.now();
+// await sendScrappingCsv(query, "sebastianknell@hotmail.com");
+// const end = performance.now();
+// console.log(`Time: ${end - start}`);
