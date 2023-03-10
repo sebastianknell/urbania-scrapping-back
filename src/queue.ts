@@ -1,23 +1,26 @@
-import { Queue, Worker } from "bullmq"
+import { Queue, Worker } from "bullmq";
 import { sendScrappingCsv } from "./crawler.js";
 import { Query } from "./model/query.js";
+import environment from "./environment.js";
 
 const connectionOptions = {
   connection: {
-    host: "localhost",
-    port: 6379,
+    host: environment.REDIS_HOST,
+    port: environment.REDIS_PORT,
   },
 };
 
-export const backgroundJobs = new Queue("background-jobs", connectionOptions);
+const queueName = "background-jobs";
+export const backgroundJobs = new Queue(queueName, connectionOptions);
 
-const worker = new Worker(
-  "background-jobs",
+export const worker = new Worker(
+  queueName,
   async (job) => {
     const query: Query = job.data.query;
     const email: string = job.data.email;
-    sendScrappingCsv(query, email);
+    const filename = await sendScrappingCsv(query, email);
     console.log(query, email);
+    return filename;
   },
   connectionOptions
 );

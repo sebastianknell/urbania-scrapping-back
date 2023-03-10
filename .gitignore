@@ -4,3 +4,4 @@ dump.rdb
 storage
 files
 .DS_Store
+.env
