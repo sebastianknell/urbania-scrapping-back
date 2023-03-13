@@ -1,9 +1,9 @@
+import path from "path";
 import { PlaywrightCrawler, RequestQueue } from "crawlee";
 import { selectors } from "playwright";
 import { createArrayCsvWriter } from "csv-writer";
-import { sendEmailCsv } from "./email.js";
+// import { sendEmailCsv } from "./email.js";
 import { Query } from "./model/query.js";
-import environment from "./environment.js";
 
 const source = "https://urbania.pe";
 selectors.setTestIdAttribute("data-qa");
@@ -20,9 +20,9 @@ const queryUrl = (
 export const sendScrappingCsv = async (query: Query, email: string) => {
   const requestQueue = await RequestQueue.open();
 
+  const filename = `scrapping-${new Date().toISOString()}.csv`;
   const csvWriter = createArrayCsvWriter({
-    // path: `storage/datasets/crawl-${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear()}.csv`,
-    path: "files/output.csv",
+    path: path.join("files", filename),
     header: [
       "title",
       "url",
@@ -31,9 +31,10 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
       "district",
       "province",
       "department",
+      "location",
       "price",
-      "area",
-      "areaTotal"
+      "totalArea",
+      "roofedArea",
     ],
   });
 
@@ -70,7 +71,11 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
             "div > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1)"
           )
           .textContent();
-          console.log(title)
+
+        const location = await list
+          .nth(i)
+          .getByTestId("POSTING_CARD_LOCATION")
+          .textContent();
 
         const price = await list
           .nth(i)
@@ -83,22 +88,23 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
 
         const features = list.nth(i).getByTestId("POSTING_CARD_FEATURES");
 
-        const area = await features
+        // Area total
+        const totalArea = await features
           .locator("span:nth-child(1) > span")
           .textContent();
-        const areaNum = Number(area?.trim().split(" ")[0]);
+        const totalAreanNum = Number(totalArea?.trim().split(" ")[0]);
 
-        const areaTotal = await features
+        // Area techada
+        const roofedArea = await features
           .locator("span:nth-child(2) > span")
           .textContent();
-        const areaTotalNum = Number(areaTotal?.trim().split(" ")[0]);
+        const roofedAreaNum = Number(roofedArea?.trim().split(" ")[0]);
 
         const relativeUrl = await list
           .nth(i)
           .locator("div")
           .first()
-          // fix type
-          .evaluate((node: any) => {
+          .evaluate((node) => {
             return node.attributes.getNamedItem("data-to-posting")?.nodeValue;
           });
         const url = source + relativeUrl;
@@ -111,9 +117,10 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
           query.district,
           "lima",
           "lima",
+          location,
           priceNum,
-          areaNum,
-          areaTotalNum
+          totalAreanNum,
+          roofedAreaNum,
         ]);
       }
 
@@ -135,7 +142,7 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
   //   "files/output.csv"
   // );
 
-  return "output.csv";
+  return filename;
 };
 
 const query: Query = {
@@ -145,6 +152,6 @@ const query: Query = {
 };
 
 // const start = performance.now();
-await sendScrappingCsv(query, "sebastianknell@hotmail.com");
+// await sendScrappingCsv(query, "sebastianknell@hotmail.com");
 // const end = performance.now();
 // console.log(`Time: ${(end - start) / 1000}s`);

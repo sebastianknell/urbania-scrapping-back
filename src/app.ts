@@ -2,9 +2,8 @@ import express from "express";
 import cors from "cors";
 import statusCodes from "http-status-codes";
 import http from "http";
+import path from "path";
 import { WebSocket } from "ws";
-import { Job } from "bullmq";
-import environment from "./environment.js";
 import { backgroundJobs, worker } from "./queue.js";
 import { Query } from "./model/query.js";
 import { districts } from "./data.js";
@@ -24,7 +23,7 @@ app.post("/scrapping", async (req, res) => {
     return;
   }
   const job = await backgroundJobs.add("send-email", { query, email });
-  const jobId = job.id;
+  const jobId = Number(job.id);
   console.log(jobId);
   res.json({ jobId });
 });
@@ -36,25 +35,22 @@ app.get("/get-districts", async (req, res) => {
 app.get("/download-csv/:filename", async (req, res) => {
   console.log("downloading file");
   const filename = req.params.filename;
-  res.download(`files/${filename}`, "scrapping.csv");
+  const filePath = path.join("files", filename);
+  res.download(filePath, filename);
 });
 
 const port = 5000;
-// app.listen(port, () => {
-//   console.log(`Server running on port ${port}`);
-// });
-
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", async (ws: WebSocket) => {
   console.log("Socket connected");
-
+  worker.removeAllListeners("completed");
   worker.on("completed", (job) => {
-    console.log("job completed");
+    console.log("job completed at:", new Date().toLocaleString());
     ws.send(
       JSON.stringify({
-        jobId: job.id,
+        jobId: Number(job.id),
         filename: job.returnvalue,
       })
     );

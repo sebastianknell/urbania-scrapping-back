@@ -19,7 +19,6 @@ export const worker = new Worker(
     const query: Query = job.data.query;
     const email: string = job.data.email;
     const filename = await sendScrappingCsv(query, email);
-    console.log(query, email);
     return filename;
   },
   connectionOptions
