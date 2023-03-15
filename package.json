@@ -5,8 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node-esm src/app.ts",
-    "crawl": "ts-node-esm src/crawler.ts"
+    "start": "ts-node-esm -r dotenv/config src/app.ts",
+    "crawl": "ts-node-esm -r dotenv/config src/crawler.ts"
   },
   "keywords": [],
   "author": "",

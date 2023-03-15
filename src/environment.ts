@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 export default {
   REDIS_HOST: process.env.REDIST_HOST as string,
   REDIS_PORT: Number(process.env.REDIS_PORT as string),
