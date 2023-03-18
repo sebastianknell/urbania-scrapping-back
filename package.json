@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "engines": {
+    "node": "19.2.0"
+  },
   "scripts": {
-    "start": "ts-node-esm -r dotenv/config src/app.ts",
+    "build": "tsc && mkdir dist/files",
+    "start": "node dist/src/app.js",
+    "postinstall": "tsc && mkdir dist/files",
     "crawl": "ts-node-esm -r dotenv/config src/crawler.ts"
   },
   "keywords": [],
