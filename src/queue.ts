@@ -2,12 +2,10 @@ import { Queue, Worker } from "bullmq";
 import { sendScrappingCsv } from "./crawler.js";
 import { Query } from "./model/query.js";
 import environment from "./environment.js";
+import IORedis from "ioredis"
 
 const connectionOptions = {
-  connection: {
-    host: environment.REDIS_HOST,
-    port: environment.REDIS_PORT,
-  },
+  connection: new IORedis(environment.REDIS_URL),
 };
 
 const queueName = "background-jobs";
