@@ -8,6 +8,7 @@ import { backgroundJobs, worker } from "./queue.js";
 import { Query } from "./model/query.js";
 import { districts } from "./data.js";
 import { validateQuery } from "./utils/validation-utils.js";
+import { Job } from "bullmq";
 
 const app = express();
 app.use(cors());
@@ -57,7 +58,6 @@ wss.on("connection", async (ws: WebSocket) => {
   });
 });
 
-//start our server
 server.listen(port, () => {
   console.log(`Server started on port ${port} :)`);
 });

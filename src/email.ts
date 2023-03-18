@@ -1,7 +1,7 @@
 import { createTransport, SendMailOptions } from "nodemailer";
 import environment from "./environment";
 
-export function sendEmailCsv(email: string, text: string, path: string) {
+/* export function sendEmailCsv(email: string, text: string, path: string) {
   const transporter = createTransport({
       host: environment.SMTP_HOST,
       port: environment.SMTP_PORT,
@@ -34,3 +34,4 @@ export function sendEmailCsv(email: string, text: string, path: string) {
       }
     });
 }
+ */
