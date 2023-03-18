@@ -40,7 +40,7 @@ app.get("/download-csv/:filename", async (req, res) => {
   res.download(filePath, filename);
 });
 
-const port = 5000;
+const port = process.env.PORT;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
