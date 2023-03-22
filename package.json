@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node dist/app.js",
-    "postinstall": "tsc && mkdir files && npx playwright install",
+    "postinstall": "tsc && mkdir files",
     "dev": "ts-node-esm -r dotenv/config src/app.ts",
     "worker": "ts-node-esm -r dotenv/config src/queue.ts",
     "crawl": "ts-node-esm -r dotenv/config src/crawler.ts"
