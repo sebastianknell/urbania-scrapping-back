@@ -3,9 +3,9 @@ import cors from "cors";
 import statusCodes from "http-status-codes";
 import http from "http";
 import path from "path";
-import { WebSocket } from "ws";
+import { WebSocketServer } from "ws";
 import { Queue, QueueEvents } from "bullmq";
-import { queueName, connectionOptions } from "./queue.js";
+import { queueName, connectionOptions } from "./queueConfig.js";
 import { Query } from "./model/query.js";
 import { districts } from "./data.js";
 import { validateQuery } from "./utils/validation-utils.js";
@@ -45,20 +45,11 @@ app.get("/download-csv/:filename", async (req, res) => {
 
 const port = process.env.PORT || 5000;
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 wss.on("connection", async (ws: WebSocket) => {
   console.log("Socket connected");
-  /* worker.removeAllListeners("completed");
-  worker.on("completed", (job) => {
-    console.log("job completed at:", new Date().toLocaleString());
-    ws.send(
-      JSON.stringify({
-        jobId: Number(job.id),
-        filename: job.returnvalue,
-      })
-    );
-  }); */
+
   backgroundJobsEvents.removeAllListeners("completed");
   backgroundJobsEvents.on("completed", ({jobId, returnvalue}) => {
     console.log(`Job ${jobId} completed at: ${new Date().toLocaleString()}`);
@@ -69,7 +60,6 @@ wss.on("connection", async (ws: WebSocket) => {
       })
     );
   })
-
 });
 
 server.listen(port, () => {

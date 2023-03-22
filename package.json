@@ -8,8 +8,9 @@
   },
   "scripts": {
     "start": "node dist/app.js",
-    "postinstall": "tsc",
+    "postinstall": "tsc && mkdir files && npx playwright install chromium",
     "dev": "ts-node-esm -r dotenv/config src/app.ts",
+    "worker": "ts-node-esm -r dotenv/config src/queue.ts",
     "crawl": "ts-node-esm -r dotenv/config src/crawler.ts"
   },
   "keywords": [],
