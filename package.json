@@ -9,23 +9,24 @@
   "scripts": {
     "start": "node dist/app.js",
     "postinstall": "tsc",
+    "dev": "ts-node-esm -r dotenv/config src/app.ts",
     "crawl": "ts-node-esm -r dotenv/config src/crawler.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/ws": "^8.5.4",
+    "apify": "^3.1.2",
     "bullmq": "^3.9.0",
     "cors": "^2.8.5",
     "crawlee": "^3.2.2",
     "csv-writer": "^1.6.0",
-    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "http-status-codes": "^2.2.0",
     "ioredis": "^5.3.1",
     "nodemailer": "^6.9.1",
     "playwright": "^1.31.2",
+    "throng": "^5.0.0",
     "ws": "^8.12.1"
   },
   "devDependencies": {
@@ -33,6 +34,9 @@
     "@types/express": "^4.17.17",
     "@types/node": "^18.14.2",
     "@types/nodemailer": "^6.4.7",
+    "@types/throng": "^5.0.4",
+    "@types/ws": "^8.5.4",
+    "dotenv": "^16.0.3",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
   }

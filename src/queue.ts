@@ -1,23 +1,31 @@
+import IORedis from "ioredis"
 import { Queue, Worker } from "bullmq";
+import throng from "throng"
 import { sendScrappingCsv } from "./crawler.js";
 import { Query } from "./model/query.js";
 import environment from "./environment.js";
-import IORedis from "ioredis"
 
-const connectionOptions = {
+export const queueName = "background-jobs";
+
+export const connectionOptions = {
   connection: new IORedis(environment.REDIS_URL),
 };
 
-const queueName = "background-jobs";
-export const backgroundJobs = new Queue(queueName, connectionOptions);
+let workers = process.env.WEB_CONCURRENCY || 1;
 
-export const worker = new Worker(
-  queueName,
-  async (job) => {
-    const query: Query = job.data.query;
-    const email: string = job.data.email;
-    const filename = await sendScrappingCsv(query, email);
-    return filename;
-  },
-  connectionOptions
-);
+function start() {
+  const backgroundJobs = new Queue(queueName, connectionOptions);
+  
+  const worker = new Worker(
+    queueName,
+    async (job) => {
+      const query: Query = job.data.query;
+      const email: string = job.data.email;
+      const filename = await sendScrappingCsv(query, email);
+      return filename;
+    },
+    connectionOptions
+  );
+}
+
+throng({workers, start});

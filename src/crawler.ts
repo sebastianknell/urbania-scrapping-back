@@ -1,5 +1,5 @@
 import path from "path";
-import { PlaywrightCrawler, RequestQueue } from "crawlee";
+import { PlaywrightCrawler, RequestQueue, ProxyConfiguration } from "crawlee";
 import { selectors } from "playwright";
 import { createArrayCsvWriter } from "csv-writer";
 // import { sendEmailCsv } from "./email.js";
@@ -38,8 +38,16 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
     ],
   });
 
+  const proxyConfiguration = new ProxyConfiguration({
+    proxyUrls: ["http://190.119.102.253:999"],
+  });
+
   let isFirstCrawl = true;
   const crawler = new PlaywrightCrawler({
+    // proxyConfiguration,
+    // sessionPoolOptions: {
+    //   maxPoolSize: 1
+    // },
     async requestHandler({ page, request }) {
       console.log(request.url);
       // Add all pages at once only the first time
