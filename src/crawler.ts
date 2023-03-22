@@ -137,7 +137,7 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
     requestQueue: requestQueue,
   });
 
-  requestQueue.addRequest({
+  await requestQueue.addRequest({
     url: queryUrl(query.saleType, query.propertyType, query.district),
   });
 
