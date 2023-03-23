@@ -39,15 +39,17 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
   });
 
   const proxyConfiguration = new ProxyConfiguration({
-    proxyUrls: ["http://190.119.102.253:999"],
+    proxyUrls: [
+      "http://ek6troeqn6:gwcb0uzelb-country-PE@resi.proxyscrape.com:8000",
+    ],
   });
 
   let isFirstCrawl = true;
   const crawler = new PlaywrightCrawler({
-    // proxyConfiguration,
-    // sessionPoolOptions: {
-    //   maxPoolSize: 1
-    // },
+    proxyConfiguration,
+    sessionPoolOptions: {
+      maxPoolSize: 1
+    },
     async requestHandler({ page, request }) {
       console.log(request.url);
       // Add all pages at once only the first time
