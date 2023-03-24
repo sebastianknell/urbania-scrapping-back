@@ -2,8 +2,15 @@ import path from "path";
 import { PlaywrightCrawler, RequestQueue, ProxyConfiguration } from "crawlee";
 import { selectors } from "playwright";
 import { createArrayCsvWriter } from "csv-writer";
-// import { sendEmailCsv } from "./email.js";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Query } from "./model/query.js";
+import environment from "./environment.js";
+import fs from "fs";
 
 const source = "https://urbania.pe";
 selectors.setTestIdAttribute("data-qa");
@@ -16,6 +23,14 @@ const queryUrl = (
 ) => {
   return `${source}/buscar/${saleType}-de-${propertyType}-en-${district}--lima--lima?page=${page}`;
 };
+
+const s3 = new S3Client({
+  credentials: {
+    accessKeyId: environment.AWS_ACCESS_KEY_ID,
+    secretAccessKey: environment.AWS_SECRET_ACCESS_KEY,
+  },
+  region: "us-east-1",
+});
 
 export const sendScrappingCsv = async (query: Query, email: string) => {
   const requestQueue = await RequestQueue.open();
@@ -137,6 +152,7 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
       await csvWriter.writeRecords(records);
     },
     requestQueue: requestQueue,
+    maxConcurrency: 3,
   });
 
   await requestQueue.addRequest({
@@ -146,19 +162,33 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
   console.log("Scrapping Urbania.pe");
   await crawler.run();
 
-  // sendEmailCsv(
-  //   email,
-  //   `Estos son los resultados de ${query.saleType} de ${query.propertyType} en ${query.district}`,
-  //   "files/output.csv"
-  // );
+  const params = {
+    Bucket: environment.S3_BUCKET,
+    Key: filename,
+    Body: fs.readFileSync(path.join("files", filename)),
+  };
 
-  return filename;
+  await s3.send(new PutObjectCommand(params));
+
+  const downloadUrl = await getSignedUrl(
+    s3,
+    new GetObjectCommand({
+      Bucket: environment.S3_BUCKET,
+      Key: filename,
+      ResponseContentDisposition: "attachment",
+    }),
+    {
+      expiresIn: 3600
+    }
+  );
+
+  return downloadUrl;
 };
 
 const query: Query = {
   saleType: "alquiler",
   propertyType: "departamentos",
-  district: "barranco",
+  district: "surquillo",
 };
 
 // const start = performance.now();

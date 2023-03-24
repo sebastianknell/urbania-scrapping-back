@@ -10,13 +10,15 @@
     "start": "node dist/app.js",
     "postinstall": "tsc && mkdir files",
     "dev": "ts-node-esm -r dotenv/config src/app.ts",
-    "worker": "ts-node-esm -r dotenv/config src/queue.ts",
+    "worker": "ts-node-esm -r dotenv/config src/worker.ts",
     "crawl": "ts-node-esm -r dotenv/config src/crawler.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.298.0",
+    "@aws-sdk/s3-request-presigner": "^3.298.0",
     "apify": "^3.1.2",
     "bullmq": "^3.9.0",
     "cors": "^2.8.5",

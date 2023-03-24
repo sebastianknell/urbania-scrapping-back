@@ -36,13 +36,6 @@ app.get("/get-districts", async (req, res) => {
   res.json(districts.sort((a, b) => a.value.localeCompare(b.value)));
 });
 
-app.get("/download-csv/:filename", async (req, res) => {
-  console.log("downloading file");
-  const filename = req.params.filename;
-  const filePath = path.join("files", filename);
-  res.download(filePath, filename);
-});
-
 const port = process.env.PORT || 5000;
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -56,7 +49,7 @@ wss.on("connection", async (ws: WebSocket) => {
     ws.send(
       JSON.stringify({
         jobId: Number(jobId),
-        filename: returnvalue,
+        downloadUrl: returnvalue,
       })
     );
   })

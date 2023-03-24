@@ -12,8 +12,8 @@ function start() {
     async (job) => {
       const query: Query = job.data.query;
       const email: string = job.data.email;
-      const filename = await sendScrappingCsv(query, email);
-      return filename;
+      const downloadUrl = await sendScrappingCsv(query, email);
+      return downloadUrl;
     },
     connectionOptions
   );
