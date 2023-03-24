@@ -53,6 +53,10 @@ wss.on("connection", async (ws: WebSocket) => {
       })
     );
   })
+
+  setInterval(() => {
+    ws.send("ping");
+  }, 30000)
 });
 
 server.listen(port, () => {

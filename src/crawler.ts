@@ -39,7 +39,7 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
   const csvWriter = createArrayCsvWriter({
     path: path.join("files", filename),
     header: [
-      "title",
+      // "title",
       "url",
       "saleType",
       "propertyType",
@@ -90,12 +90,12 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
       let records: any[][] = [];
 
       for (let i = 0; i < (await list.count()); i++) {
-        const title = await list
-          .nth(i)
-          .locator(
-            "div > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1)"
-          )
-          .textContent();
+        // const title = await list
+        //   .nth(i)
+        //   .locator(
+        //     "div > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1)"
+        //   )
+        //   .textContent();
 
         const location = await list
           .nth(i)
@@ -135,7 +135,7 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
         const url = source + relativeUrl;
 
         records.push([
-          title ?? "",
+          // title ?? "",
           url,
           query.saleType,
           query.propertyType,
@@ -161,7 +161,8 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
 
   console.log("Scrapping Urbania.pe");
   await crawler.run();
-
+  await requestQueue.drop();
+  
   const params = {
     Bucket: environment.S3_BUCKET,
     Key: filename,
