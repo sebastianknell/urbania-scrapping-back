@@ -5,3 +5,4 @@ storage
 files
 .DS_Store
 .env
+dist

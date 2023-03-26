@@ -70,12 +70,15 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
       // Add all pages at once only the first time
       if (isFirstCrawl) {
         const numberOfItemsTitle = await page
-          .locator(
-            "#root > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > h1"
-          )
+          .getByText("Inmuebles")
+          .first()
           .textContent();
-        const numberOfItems = Number(numberOfItemsTitle?.trim().split(" ")[0]);
+        const numberOfItems = Number(
+          numberOfItemsTitle?.trim().split(" ")[0].replace(/,/g, "")
+        );
+        console.log(`Found ${numberOfItems} properties`);
         const numberOfPages = Math.ceil(numberOfItems / 20);
+        console.log(`Scrapping ${numberOfPages} pages`);
         for (let i = 2; i <= numberOfPages; i++) {
           const newUrl = request.url.split("?")[0] + `?page=${i}`;
           requestQueue.addRequest({
@@ -189,7 +192,7 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
 const query: Query = {
   saleType: "alquiler",
   propertyType: "departamentos",
-  district: "surquillo",
+  district: "lince",
 };
 
 // const start = performance.now();
