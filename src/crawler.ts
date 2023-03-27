@@ -50,6 +50,7 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
       "price",
       "totalArea",
       "roofedArea",
+      "description",
     ],
   });
 
@@ -137,6 +138,11 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
           });
         const url = source + relativeUrl;
 
+        const description = await list
+          .nth(i)
+          .getByTestId("POSTING_CARD_DESCRIPTION")
+          .textContent();
+
         records.push([
           // title ?? "",
           url,
@@ -149,13 +155,14 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
           priceNum,
           totalAreanNum,
           roofedAreaNum,
+          description,
         ]);
       }
 
       await csvWriter.writeRecords(records);
     },
     requestQueue: requestQueue,
-    maxConcurrency: 3,
+    maxConcurrency: 4,
   });
 
   await requestQueue.addRequest({
@@ -165,7 +172,7 @@ export const sendScrappingCsv = async (query: Query, email: string) => {
   console.log("Scrapping Urbania.pe");
   await crawler.run();
   await requestQueue.drop();
-  
+
   const params = {
     Bucket: environment.S3_BUCKET,
     Key: filename,
